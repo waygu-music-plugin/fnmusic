@@ -52,6 +52,7 @@ type Home struct {
 	addTracks                           []pluginapi.Track
 	addList                             *List
 	folders                             *folderViewState
+	locateGen                           uint64
 }
 
 func (h *Home) postCurrent(gen uint64, fn func()) {

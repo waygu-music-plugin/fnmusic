@@ -50,6 +50,28 @@ type folderPageResponse struct {
 	Sort string `json:"sort"`
 }
 
+// TrackPath resolves the server-side path of a song.
+func (c *Client) TrackPath(guid string) (string, error) {
+	if strings.TrimSpace(guid) == "" {
+		return "", errors.New("fnmusic: empty track GUID")
+	}
+	var out struct {
+		AudioSpec struct {
+			Path string `json:"path"`
+		} `json:"audioSpec"`
+		Track rawTrack `json:"track"`
+	}
+	if err := c.call("GET", "/track/metadata", url.Values{"guid": {guid}}, nil, &out); err != nil {
+		return "", err
+	}
+	for _, p := range []string{out.AudioSpec.Path, out.Track.AudioSpec.Path, out.Track.Path} {
+		if strings.TrimSpace(p) != "" {
+			return p, nil
+		}
+	}
+	return "", errors.New("fnmusic: track has no file path")
+}
+
 // FolderPage returns the direct folders and tracks below parentPath. Paths
 // are sent unchanged because they identify the library root and its tree.
 func (c *Client) FolderPage(parentPath, sort string) (FolderPage, error) {

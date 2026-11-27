@@ -3,6 +3,7 @@ package fnmusic
 import backend "github.com/waygu-music-plugin/fnmusic/internal/client"
 
 type platformPreferences struct {
+	ReplayGain       bool              `json:"replayGain,omitempty"`
 	Config           connectionConfig  `json:"config,omitempty"`
 	Sorts            map[string]string `json:"sorts,omitempty"`
 	TranscodeMode    transcodeMode     `json:"transcodeMode,omitempty"`

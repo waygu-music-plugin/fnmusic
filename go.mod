@@ -6,7 +6,7 @@ require (
 	github.com/egoist/mygo v0.10.0
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-plugin v1.8.0
-	github.com/waygu-music-plugin/sdk v0.1.3
+	github.com/waygu-music-plugin/sdk v0.1.4
 	golang.org/x/image v0.46.0
 )
 

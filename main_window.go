@@ -205,6 +205,9 @@ func (h *Home) songItems(tr *pluginapi.Track, _ int64) func(*ui.Menu) {
 		if m.Item("复制链接").Chosen() {
 			h.host.CopyText("")
 		}
+		if h.state != nil && h.state.Connected() && h.state.FolderViewEnabled() && tr.Ref != "" && m.Item("在文件夹中查看").Chosen() {
+			h.locateTrack(tr)
+		}
 		linked := tr.Album.ID != 0
 		for _, artist := range tr.Artists {
 			linked = linked || artist.ID != 0

@@ -1,8 +1,8 @@
 package fnmusic
 
 import (
-	"github.com/waygu-music-plugin/sdk/pluginapi"
 	backend "github.com/waygu-music-plugin/fnmusic/internal/client"
+	"github.com/waygu-music-plugin/sdk/pluginapi"
 
 	"github.com/egoist/mygo/ui"
 )
@@ -32,6 +32,9 @@ func (h *Home) trackMenu(m *ui.Menu, tr *pluginapi.Track, pid int64) {
 	}
 	if h.state == nil || !h.state.Connected() {
 		return
+	}
+	if h.state.FolderViewEnabled() && tr.Ref != "" && m.Item("在文件夹中查看").Chosen() {
+		h.locateTrack(tr)
 	}
 	m.Separator()
 	m.Submenu("添加到歌单", func(sub *ui.Menu) {

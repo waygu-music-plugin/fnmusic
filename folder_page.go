@@ -12,8 +12,8 @@ import (
 
 	"github.com/egoist/mygo/ui"
 
-	"github.com/waygu-music-plugin/sdk/pluginapi"
 	backend "github.com/waygu-music-plugin/fnmusic/internal/client"
+	"github.com/waygu-music-plugin/sdk/pluginapi"
 )
 
 func (h *Home) folderPage(c *ui.Context) {
@@ -87,6 +87,20 @@ func (h *Home) folderContentPage(c *ui.Context, f *folderViewState, folderPath s
 		}
 		h.folderContentSkeleton(c)
 		return
+	}
+	if f.locatePath == folderPath && f.locateGUID != "" {
+		found := false
+		for i, item := range page.Tracks {
+			if item.Track.Ref == f.locateGUID {
+				f.listState(folderPath).ScrollTo(1+len(page.Folders)+i, ui.Center)
+				found = true
+				break
+			}
+		}
+		if !found {
+			h.host.Toast("该文件夹中没有找到这首歌曲")
+		}
+		f.locatePath, f.locateGUID = "", ""
 	}
 	tracks := make([]pluginapi.Track, len(page.Tracks))
 	for i, item := range page.Tracks {

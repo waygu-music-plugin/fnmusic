@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/egoist/mygo/ui"
+	"github.com/waygu-music-plugin/sdk/pluginapi"
 
 	backend "github.com/waygu-music-plugin/fnmusic/internal/client"
 )
@@ -26,6 +27,8 @@ type folderViewState struct {
 	errs       map[string]error
 	lists      map[string]*ui.ListState
 	sort       string
+	locatePath string
+	locateGUID string
 }
 
 func newFolderViewState(h *Home) *folderViewState {
@@ -54,6 +57,7 @@ func (f *folderViewState) reset(gen uint64) {
 	f.loading = map[string]bool{}
 	f.errs = map[string]error{}
 	f.lists = map[string]*ui.ListState{}
+	f.locatePath, f.locateGUID = "", ""
 }
 
 // syncFolders drops what an earlier session loaded.
@@ -182,6 +186,36 @@ func (h *Home) setFolderSort(sort string) {
 	f.errs = map[string]error{}
 	h.rememberSort(sortKeyFolders, sort)
 	h.host.Invalidate()
+}
+
+// locateTrack looks up the song's parent without blocking the view.
+func (h *Home) locateTrack(tr *pluginapi.Track) {
+	if h == nil || h.state == nil || tr == nil || tr.Ref == "" || !h.state.FolderViewEnabled() {
+		return
+	}
+	client := h.state.Client()
+	if client == nil {
+		return
+	}
+	h.locateGen++
+	request, gen, guid, route := h.locateGen, h.state.Generation(), tr.Ref, h.route
+	scoped, ctx := client.WithContext(h.scope), h.scope
+	go func() {
+		filePath, err := scoped.TrackPath(guid)
+		h.postCurrent(gen, func() {
+			if ctx.Err() != nil || request != h.locateGen || h.route != route {
+				return
+			}
+			if err != nil || !strings.HasPrefix(filePath, "/") || path.Base(filePath) == "." || path.Base(filePath) == "/" {
+				h.host.Toast("无法定位歌曲文件夹，请检查歌曲是否可用")
+				return
+			}
+			folder := path.Dir(filePath)
+			f := h.syncFolders()
+			f.locatePath, f.locateGUID = folder, guid
+			h.openFolder(folder)
+		})
+	}()
 }
 
 // openFolder shows a folder as a page of its own.

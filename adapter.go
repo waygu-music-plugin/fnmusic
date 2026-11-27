@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/waygu-music-plugin/sdk/pluginapi"
 	backend "github.com/waygu-music-plugin/fnmusic/internal/client"
+	"github.com/waygu-music-plugin/sdk/pluginapi"
 )
 
 const ID = backend.PlatformID
@@ -72,6 +72,7 @@ func (a *Adapter) OwnsTrack(tr *pluginapi.Track) bool {
 func (a *Adapter) PlaybackMedia() pluginapi.PlaybackMedia {
 	s := a.state
 	return pluginapi.PlaybackMedia{
+		Preferences: a.runtime.AudioPreferences,
 		CastSource: func(ctx context.Context, tr *pluginapi.Track, format string) (*pluginapi.Stream, pluginapi.SegmentedSource, error) {
 			settings := a.runtime.Transcode()
 			if format != "mp3" && (format != "" || (settings.Mode != transcodeAlways && !tr.Cue)) {

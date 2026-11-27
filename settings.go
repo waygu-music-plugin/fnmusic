@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/egoist/mygo/ui"
+	"github.com/waygu-music-plugin/sdk/pluginapi"
 )
 
 func (h *Home) Settings(c *ui.Context) {
@@ -50,6 +51,7 @@ func (h *Home) Settings(c *ui.Context) {
 			if h.state.Connected() {
 				h.transcodeSettings(c, t)
 			}
+			h.replayGainSettings(c, t)
 		})
 		h.desktopSettings(c)
 	})
@@ -109,5 +111,25 @@ func (h *Home) transcodeSettings(c *ui.Context, t ui.Theme) {
 				}
 			}
 		}
+	})
+}
+
+// replayGainSettings changes the playback engine's album ReplayGain mode.
+func (h *Home) replayGainSettings(c *ui.Context, t ui.Theme) {
+	if h.runtime == nil {
+		return
+	}
+	enabled := h.runtime.AudioPreferences().ReplayGainMode == "album"
+	ui.Row(c).Padding(12, 16).Gap(16).AlignItems(ui.Center).Children(func() {
+		ui.Column(c).Grow(1).Gap(3).Children(func() {
+			ui.Text(c, "音量均衡").FontSize(13.5).FontWeight(500)
+			ui.Text(c, "MPV 按专辑 ReplayGain 标签调整音量；转码或缺少标签时可能无效").FontSize(12).TextColor(t.TextMuted)
+		})
+		ui.Switch(c.Key("fnmusic-replay-gain"), &enabled).Label("启用音量均衡").OnClick(func() {
+			h.runtime.SetReplayGain(enabled)
+			if host, ok := h.host.(pluginapi.AudioPreferenceServices); ok {
+				host.AudioPreferencesChanged(h.runtime.AudioPreferences())
+			}
+		})
 	})
 }

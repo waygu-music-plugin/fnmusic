@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	appplatform "github.com/waygu-music-plugin/sdk/pluginapi"
 	backend "github.com/waygu-music-plugin/fnmusic/internal/client"
+	appplatform "github.com/waygu-music-plugin/sdk/pluginapi"
 )
 
 // RuntimeAdapter translates the generic application seam into Feiniu's
@@ -239,4 +239,34 @@ func (a *Adapter) connectOnActivation(event appplatform.Activation) {
 			})
 		}
 	}()
+}
+
+// AudioPreferences returns the Feiniu-specific ReplayGain setting.
+func (r *RuntimeAdapter) AudioPreferences() appplatform.AudioPreferences {
+	prefs := appplatform.AudioPreferences{ReplayGainMode: "no"}
+	if r == nil || r.settings == nil {
+		return prefs
+	}
+	r.settingsMu.Lock()
+	defer r.settingsMu.Unlock()
+	if r.settings.ReplayGain {
+		prefs.ReplayGainMode = "album"
+	}
+	return prefs
+}
+
+// SetReplayGain saves the preference independently of other platforms.
+func (r *RuntimeAdapter) SetReplayGain(enabled bool) {
+	if r == nil || r.settings == nil {
+		return
+	}
+	r.settingsMu.Lock()
+	defer r.settingsMu.Unlock()
+	if r.settings.ReplayGain == enabled {
+		return
+	}
+	r.settings.ReplayGain = enabled
+	if r.save != nil {
+		r.save()
+	}
 }
